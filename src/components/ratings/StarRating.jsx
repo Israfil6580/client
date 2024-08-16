@@ -5,7 +5,7 @@ const StarRating = ({ rating }) => {
   const halfStar = rating % 1 >= 0.5;
 
   return (
-    <div className="rating rating-lg rating-half">
+    <div className="rating rating-lg rating-half items-center">
       {[...Array(totalStars)].map((_, index) => {
         const isFullStar = index < fullStars;
         const isHalfStar = index === fullStars && halfStar;
@@ -24,7 +24,7 @@ const StarRating = ({ rating }) => {
           />
         );
       })}
-      <span className="ml-2 text-sm font-semibold">
+      <span className="ml-2 text-[15px] font-semibold">
         {(Number(rating) || 0).toFixed(1)}
       </span>
     </div>

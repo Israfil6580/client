@@ -16,7 +16,8 @@ export default function AuthProvider({ children }) {
   const [category, setCategory] = useState("");
   const [priceRange, setPriceRange] = useState([0, 20000]);
   const [loading, setLoading] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sort, setSort] = useState("");
   // Fetch brands and categories only once
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -31,11 +32,9 @@ export default function AuthProvider({ children }) {
 
         setBrands(brandsResponse.data);
         setCategories(categoriesResponse.data);
-
-        setIsBrandsLoading(false);
-        setIsCategoriesLoading(false);
       } catch (error) {
         console.error("Error fetching brands or categories:", error);
+      } finally {
         setIsBrandsLoading(false);
         setIsCategoriesLoading(false);
       }
@@ -45,14 +44,19 @@ export default function AuthProvider({ children }) {
   }, []);
 
   // Fetch products based on filters and pagination
+  // Updated fetchProducts function in AuthProvider
   useEffect(() => {
+    const source = axios.CancelToken.source();
+
     const fetchProducts = async () => {
       setLoading(true);
+      setProducts([]); // Clear previous products
 
       try {
         const params = new URLSearchParams();
         if (brand) params.append("brand", brand);
         if (category) params.append("category", category);
+        if (searchQuery) params.append("query", searchQuery);
         if (priceRange.length === 2) {
           params.append("minPrice", priceRange[0]);
           params.append("maxPrice", priceRange[1]);
@@ -60,21 +64,33 @@ export default function AuthProvider({ children }) {
         params.append("page", page);
         params.append("limit", 8);
 
+        // Add sorting parameters
+        if (sort) params.append("sort", sort);
+
         const response = await axios.get(
-          `http://localhost:5000/products?${params.toString()}`
+          `http://localhost:5000/products?${params.toString()}`,
+          { cancelToken: source.token }
         );
 
-        setProducts(response.data.products);
+        setProducts(response.data.products || []);
         setTotalPages(response.data.totalPages || 1);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        if (axios.isCancel(error)) {
+          console.log("Request canceled", error.message);
+        } else {
+          console.error("Error fetching products:", error);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [brand, category, priceRange, page]);
+
+    return () => {
+      source.cancel("Operation canceled by the user.");
+    };
+  }, [brand, category, searchQuery, priceRange, page, sort]);
 
   // Reset page to 1 when filters change
   useEffect(() => {
@@ -100,6 +116,10 @@ export default function AuthProvider({ children }) {
     setCategory,
     setLoading,
     priceRange,
+    searchQuery,
+    setSearchQuery,
+    sort,
+    setSort,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

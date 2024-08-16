@@ -1,152 +1,8 @@
-/* eslint-disable react/prop-types */
-import { useContext } from "react";
+import { useContext, useCallback } from "react";
 import { ScrollRestoration } from "react-router-dom";
 import { AuthContext } from "../provider/AuthProvider";
-import { ThreeCircles } from "react-loader-spinner";
-import StarRating from "./ratings/StarRating";
-
-// Component to display filter options
-const FilterControls = ({
-  brand,
-  category,
-  setBrand,
-  setCategory,
-  setPriceRange,
-  isLoading,
-  brands,
-  categories,
-}) => (
-  <div className="flex space-x-4 mb-6">
-    <select
-      className="border rounded-md p-2 outline-none"
-      onChange={(e) => setBrand(e.target.value)}
-      value={brand}
-      disabled={isLoading}
-    >
-      <option value="">All Brands</option>
-      {brands.map((brand, index) => (
-        <option key={index} value={brand}>
-          {brand}
-        </option>
-      ))}
-    </select>
-
-    <select
-      className="border rounded-md p-2 outline-none"
-      onChange={(e) => setCategory(e.target.value)}
-      value={category}
-      disabled={isLoading}
-    >
-      <option value="">All Categories</option>
-      {categories.map((category, index) => (
-        <option key={index} value={category}>
-          {category}
-        </option>
-      ))}
-    </select>
-
-    <select
-      className="border rounded-md p-2 outline-none"
-      onChange={(e) => setPriceRange(e.target.value.split("-").map(Number))}
-      disabled={isLoading}
-    >
-      <option value="0-20000">All Prices</option>
-      <option value="0-100">$0 - $100</option>
-      <option value="100-500">$100 - $500</option>
-      <option value="500-1000">$500 - $1000</option>
-      <option value="1000-2000">$1000 - $2000</option>
-    </select>
-  </div>
-);
-
-// Component to display loading state
-const LoadingIndicator = () => (
-  <div className="flex justify-center items-center h-[20vh]">
-    <ThreeCircles
-      visible={true}
-      height="100"
-      width="100"
-      color="#D7CF07"
-      ariaLabel="three-circles-loading"
-    />
-  </div>
-);
-
-// Component to display no products found message
-const NoProductsMessage = () => (
-  <div className="flex justify-center items-center h-[20vh]">
-    <p className="text-xl font-semibold">Nothing Found</p>
-  </div>
-);
-
-// Component to display product cards
-const ProductGrid = ({ products, setPage, page, totalPages, loading }) => (
-  <>
-    <div className="grid grid-cols-4 gap-4">
-      {products.map((product) => (
-        <div key={product._id} className="card glass w-auto">
-          <figure>
-            <img
-              className="h-56 w-full"
-              src={product.productImage}
-              alt={product.productName}
-            />
-          </figure>
-          <div className="card-body p-7 pt-5">
-            <div className="flex justify-between items-center">
-              <h2 className="card-title">{product.productName}</h2>
-              <div className="badge badge-ghost">{product.brandName}</div>
-            </div>
-            <p className="text-[15px]">
-              {product.description.split(" ").slice(0, 12).join(" ")}
-            </p>
-            <p className="text-[15px]">
-              {new Date(product.creationDate).toLocaleString()}
-            </p>
-            <p className="text-[1.25rem] font-semibold">${product.price}</p>
-
-            <StarRating rating={product.ratings} />
-            <div className="card-actions justify-end">
-              <button className="btn btn-primary">Learn more</button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    {/* Pagination */}
-    <div className="join flex justify-center pt-6">
-      <button
-        className="join-item btn"
-        disabled={page === 1 || loading}
-        onClick={() => setPage(page - 1)}
-        aria-label="Previous Page"
-      >
-        «
-      </button>
-      {Array.from({ length: totalPages }).map((_, index) => (
-        <input
-          key={index + 1}
-          className="join-item btn px-4"
-          type="radio"
-          name="options"
-          aria-label={`Page ${index + 1}`}
-          checked={page === index + 1}
-          onChange={() => setPage(index + 1)}
-          disabled={loading}
-        />
-      ))}
-      <button
-        className="join-item btn"
-        disabled={page === totalPages || loading}
-        onClick={() => setPage(page + 1)}
-        aria-label="Next Page"
-      >
-        »
-      </button>
-    </div>
-  </>
-);
+import { Watch } from "react-loader-spinner";
+import ProductCard from "./card/ProductCard";
 
 const Products = () => {
   const {
@@ -167,42 +23,146 @@ const Products = () => {
   } = useContext(AuthContext);
 
   const isLoading = isBrandsLoading || isCategoriesLoading || loading;
+  console.log(products);
+  // Handle changes in brand, category, and price range
+  const handleBrandChange = useCallback(
+    (e) => setBrand(e.target.value),
+    [setBrand]
+  );
+
+  const handleCategoryChange = useCallback(
+    (e) => setCategory(e.target.value),
+    [setCategory]
+  );
+
+  const handlePriceRangeChange = useCallback(
+    (e) => {
+      const range = e.target.value.split("-").map(Number);
+      if (range.length === 2) {
+        setPriceRange(range);
+      }
+    },
+    [setPriceRange]
+  );
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    handlePageChange(page - 1);
+  };
+
+  const handleNextPage = () => {
+    handlePageChange(page + 1);
+  };
 
   return (
-    <div className="md:px-32 px-4 pb-6 pt-4">
-      <div className="container mx-auto">
-        <h1 className="text-5xl font-semibold text-center pt-5 pb-8">
-          Our Products
-        </h1>
+    <div className="container mx-auto min-h-[calc(100vh-188px)] m-4">
+      <div className="flex justify-between gap-8">
+        <div className="w-1/4 h-[calc(100vh-132px)] border p-4 rounded-md sticky top-4">
+          <h2 className="text-xl font-bold">Filters</h2>
+          <div>
+            <label className="block mb-2">Brand</label>
+            <select
+              value={brand}
+              onChange={handleBrandChange}
+              className="block w-full mb-4 p-2 border rounded outline-none"
+            >
+              <option value="">All Brands</option>
+              {brands.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Filter Controls */}
-        <FilterControls
-          brand={brand}
-          category={category}
-          setBrand={setBrand}
-          setCategory={setCategory}
-          setPriceRange={setPriceRange}
-          isLoading={isLoading}
-          brands={brands}
-          categories={categories}
-        />
+          <div>
+            <label className="block mb-2">Category</label>
+            <select
+              value={category}
+              onChange={handleCategoryChange}
+              className="block w-full mb-4 p-2 border rounded outline-none"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Loading Indicator */}
-        {isLoading && <LoadingIndicator />}
+          <div>
+            <label className="block mb-2">Price Range</label>
+            <select
+              onChange={handlePriceRangeChange}
+              className="block w-full p-2 border rounded outline-none"
+            >
+              <option value="0-20000">All Prices</option>
+              <option value="0-100">$0 - $100</option>
+              <option value="100-500">$100 - $500</option>
+              <option value="500-1000">$500 - $1000</option>
+              <option value="1000-2000">$1000 - $2000</option>
+            </select>
+          </div>
+        </div>
 
-        {/* No Products Found */}
-        {!isLoading && products.length === 0 && <NoProductsMessage />}
+        <div className="w-3/4 ">
+          {/* filter */}
+          <div className="flex justify-center pb-6 sticky top-4 z-10">
+            <button
+              className="join-item btn-square btn rounded-r-none border-none"
+              disabled={page === 1 || isLoading}
+              onClick={handlePreviousPage}
+            >
+              «
+            </button>
+            {Array.from({ length: totalPages }).map((_, index) => (
+              <button
+                key={index + 1}
+                className={`${
+                  page === index + 1 ? "active" : ""
+                } join-item btn rounded-none btn-square border-none`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button
+              className="join-item btn-squar btn rounded-l-none"
+              disabled={page === totalPages || isLoading}
+              onClick={handleNextPage}
+            >
+              »
+            </button>
+          </div>
 
-        {/* Product Grid */}
-        {!isLoading && products.length > 0 && (
-          <ProductGrid
-            products={products}
-            setPage={setPage}
-            page={page}
-            totalPages={totalPages}
-            loading={loading}
-          />
-        )}
+          {isLoading ? (
+            <div className="text-center h-[calc(100vh-188px)] flex items-center justify-center">
+              <Watch
+                visible={true}
+                height="80"
+                width="80"
+                radius="48"
+                color="#4fa94d"
+                ariaLabel="watch-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+              />
+            </div>
+          ) : products.length === 0 ? (
+            <div>Nothing Found</div>
+          ) : (
+            <div className="grid grid-cols-3 gap-4">
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <ScrollRestoration />
     </div>
