@@ -98,6 +98,8 @@ export default function AuthProvider({ children }) {
     loading,
     setPriceRange,
     setCategory,
+    setLoading,
+    priceRange,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

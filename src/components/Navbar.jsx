@@ -1,37 +1,51 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import logo from "../assets/react.svg";
 import { AuthContext } from "../provider/AuthProvider";
 
 const Navbar = () => {
-  const { setProducts, setTotalPages, setPage } = useContext(AuthContext);
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+  const { setProducts, setTotalPages, page, setPage, setLoading } =
+    useContext(AuthContext);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sort, setSort] = useState("");
 
-  // Fetch products with filters, search, and pagination
-  const fetchProducts = async (query = searchQuery, page = page) => {
+  const fetchProducts = async () => {
     try {
+      setLoading(true);
       const response = await axios.get("http://localhost:5000/products", {
         params: {
-          query,
+          query: searchQuery,
           page,
-          limit: 8, // Number of products per page
+          limit: 8,
+          sort,
         },
       });
       setProducts(response.data.products);
-      setTotalPages(response.data.totalPages); // Update total pages for pagination
+      setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error("Error fetching products:", error);
       setProducts([]);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Call fetchProducts when search query, page, or sort option changes
+  useEffect(() => {
+    fetchProducts();
+  }, [searchQuery, page, sort]);
+
   // Handle search input changes
-  const handleSearch = async () => {
-    // const query = event.target.value.toLowerCase();
-    const query = await document.getElementById("search_input").value;
-    setSearchQuery(query); // Update search query state
-    setPage(1); // Reset to the first page on search
-    await fetchProducts(query, 1); // Fetch first page of search results
+  const handleSearch = () => {
+    const query = document.getElementById("search_input").value;
+    setSearchQuery(query);
+    setPage(1);
+  };
+
+  // Handle sort option changes
+  const handleSortChange = (event) => {
+    setSort(event.target.value);
+    setPage(1);
   };
 
   return (
@@ -79,21 +93,26 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Searching input here */}
-      <div className="md:w-1/2 mx-auto">
-        <label className="input h-[2.5rem] input-bordered flex items-center gap-2">
-          <input
-            id="search_input"
-            type="text"
-            className="grow"
-            placeholder="Search"
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-          <button
-            className="btn btn-ghost hover:bg-transparent bg-transparent p-0"
-            onClick={handleSearch}
-          >
+      <div className="flex">
+        <select
+          className="border rounded-md p-2 outline-none"
+          value={sort}
+          onChange={handleSortChange}
+        >
+          <option value="">Sort</option>
+          <option value="price-asc">Low to High</option>
+          <option value="price-desc">High to Low</option>
+          <option value="date-added-desc">Newest First</option>
+        </select>
+        <div className="md:w-1/2 mx-auto">
+          <label className="input h-[2.5rem] input-bordered flex items-center gap-2">
+            <input
+              id="search_input"
+              type="text"
+              className="grow"
+              placeholder="Search"
+              onChange={handleSearch}
+            />
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 16 16"
@@ -106,8 +125,8 @@ const Navbar = () => {
                 clipRule="evenodd"
               />
             </svg>
-          </button>
-        </label>
+          </label>
+        </div>
       </div>
     </div>
   );

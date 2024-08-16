@@ -109,7 +109,7 @@ const Products = () => {
                     alt={product.productName}
                   />
                 </figure>
-                <div className="card-body p-7">
+                <div className="card-body p-7 pt-5">
                   <div className="flex justify-between items-center">
                     <h2 className="card-title">{product.productName}</h2>
                     <div className="badge badge-ghost">{product.brandName}</div>
@@ -117,9 +117,29 @@ const Products = () => {
                   <p className="text-[15px]">
                     {product.description.split(" ").slice(0, 12).join(" ")}
                   </p>
+                  <p className="text-[15px]">
+                    {new Date(product.creationDate).toLocaleString()}
+                  </p>
                   <p className="text-[1.25rem] font-semibold">
                     ${product.price}
                   </p>
+
+                  <div className="rating">
+                    {[...Array(5)].map((_, index) => (
+                      <input
+                        key={index}
+                        type="radio"
+                        name={`rating-${product._id}`} // Unique name for each product
+                        className={`mask mask-star-2 bg-orange-400 ${
+                          index < Math.round(product.rating) ? "checked" : ""
+                        }`}
+                        readOnly
+                      />
+                    ))}
+                    <span className="ml-2 text-sm font-semibold">
+                      {(Number(product.rating) || 0).toFixed(1)}
+                    </span>
+                  </div>
                   <div className="card-actions justify-end">
                     <button className="btn btn-primary">Learn now!</button>
                   </div>
