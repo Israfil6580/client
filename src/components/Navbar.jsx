@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import logo from "../assets/react.svg";
 import { AuthContext } from "../provider/AuthProvider";
+import { debounce } from "lodash";
 
 const Navbar = () => {
   const { setProducts, setTotalPages, page, setPage, setLoading } =
@@ -9,6 +10,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sort, setSort] = useState("");
 
+  // Debounced fetchProducts function
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -30,22 +32,25 @@ const Navbar = () => {
     }
   };
 
+  // Use debounce to limit the rate at which fetchProducts is called
+  const debouncedFetchProducts = debounce(fetchProducts, 300);
+
   // Call fetchProducts when search query, page, or sort option changes
   useEffect(() => {
-    fetchProducts();
+    debouncedFetchProducts();
   }, [searchQuery, page, sort]);
 
   // Handle search input changes
   const handleSearch = () => {
     const query = document.getElementById("search_input").value;
-    setSearchQuery(query);
     setPage(1);
+    setSearchQuery(query);
   };
 
   // Handle sort option changes
   const handleSortChange = (event) => {
-    setSort(event.target.value);
     setPage(1);
+    setSort(event.target.value);
   };
 
   return (
