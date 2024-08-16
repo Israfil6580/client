@@ -47,10 +47,9 @@ export default function AuthProvider({ children }) {
   // Fetch products based on filters and pagination
   useEffect(() => {
     const fetchProducts = async () => {
-      try {
-        setLoading(true);
+      setLoading(true);
 
-        // Construct query params based on selected filters
+      try {
         const params = new URLSearchParams();
         if (brand) params.append("brand", brand);
         if (category) params.append("category", category);
@@ -67,9 +66,9 @@ export default function AuthProvider({ children }) {
 
         setProducts(response.data.products);
         setTotalPages(response.data.totalPages || 1);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching products:", error);
+      } finally {
         setLoading(false);
       }
     };

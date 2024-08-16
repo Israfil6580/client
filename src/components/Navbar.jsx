@@ -1,23 +1,39 @@
 import { useContext, useState } from "react";
+import axios from "axios";
 import logo from "../assets/react.svg";
 import { AuthContext } from "../provider/AuthProvider";
-const Navbar = () => {
-  const { allProducts } = useContext(AuthContext);
-  const [filteredProducts, setFilteredProducts] = useState([]);
 
-  // Handle search input changes
-  const handleSearch = (event) => {
-    const searchQuery = event.target.value.toLowerCase();
-    if (searchQuery === "") {
-      return setFilteredProducts(""); // Show all products if the search query is empty
-    } else {
-      // Filter products based on the search query
-      const results = allProducts.filter((product) =>
-        product.productName.toLowerCase().includes(searchQuery)
-      );
-      setFilteredProducts(results);
+const Navbar = () => {
+  const { setProducts, setTotalPages, setPage } = useContext(AuthContext);
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
+
+  // Fetch products with filters, search, and pagination
+  const fetchProducts = async (query = searchQuery, page = page) => {
+    try {
+      const response = await axios.get("http://localhost:5000/products", {
+        params: {
+          query,
+          page,
+          limit: 8, // Number of products per page
+        },
+      });
+      setProducts(response.data.products);
+      setTotalPages(response.data.totalPages); // Update total pages for pagination
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProducts([]);
     }
   };
+
+  // Handle search input changes
+  const handleSearch = async () => {
+    // const query = event.target.value.toLowerCase();
+    const query = await document.getElementById("search_input").value;
+    setSearchQuery(query); // Update search query state
+    setPage(1); // Reset to the first page on search
+    await fetchProducts(query, 1); // Fetch first page of search results
+  };
+
   return (
     <div className="bg-success md:px-32 px-4 pb-6 pt-4">
       <div className="navbar container mx-auto p-0">
@@ -63,22 +79,26 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* searching input here */}
-
+      {/* Searching input here */}
       <div className="md:w-1/2 mx-auto">
         <label className="input h-[2.5rem] input-bordered flex items-center gap-2">
           <input
+            id="search_input"
             type="text"
             className="grow"
             placeholder="Search"
+            value={searchQuery}
             onChange={handleSearch}
           />
-          <button className="btn btn-ghost bg-transparent hover:bg-transparent p-0">
+          <button
+            className="btn btn-ghost hover:bg-transparent bg-transparent p-0"
+            onClick={handleSearch}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 16 16"
               fill="currentColor"
-              className="h-6 w-6 opacity-70"
+              className="h-7 w-7 opacity-70"
             >
               <path
                 fillRule="evenodd"
@@ -88,16 +108,6 @@ const Navbar = () => {
             </svg>
           </button>
         </label>
-        {/* Display search results */}
-        {filteredProducts.length > 0 && (
-          <ul className="mt-2 bg-base-100 p-2 rounded-box shadow">
-            {filteredProducts.slice(0, 6).map((product) => (
-              <li key={product._id} className="p-1">
-                {product.productName}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </div>
   );
