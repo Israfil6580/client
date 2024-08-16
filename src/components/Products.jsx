@@ -23,7 +23,6 @@ const Products = () => {
   } = useContext(AuthContext);
 
   const isLoading = isBrandsLoading || isCategoriesLoading || loading;
-  console.log(products);
   // Handle changes in brand, category, and price range
   const handleBrandChange = useCallback(
     (e) => setBrand(e.target.value),
@@ -60,8 +59,8 @@ const Products = () => {
 
   return (
     <div className="container mx-auto min-h-[calc(100vh-188px)] m-4">
-      <div className="flex justify-between gap-8">
-        <div className="w-1/4 h-[calc(100vh-132px)] border p-4 rounded-md sticky top-4">
+      <div className="flex lg:flex-row flex-col justify-between gap-8 px-5 pb-10">
+        <div className="lg:w-1/4 w-full lg:h-[calc(100vh-132px)] border p-4 rounded-xl lg:sticky static top-4">
           <h2 className="text-xl font-bold">Filters</h2>
           <div>
             <label className="block mb-2">Brand</label>
@@ -110,7 +109,7 @@ const Products = () => {
           </div>
         </div>
 
-        <div className="w-3/4 ">
+        <div className="lg:w-3/4 w-full">
           {/* filter */}
           <div className="flex justify-center pb-6 sticky top-4 z-10">
             <button
@@ -141,7 +140,7 @@ const Products = () => {
           </div>
 
           {isLoading ? (
-            <div className="text-center h-[calc(100vh-188px)] flex items-center justify-center">
+            <div className="text-center lg:h-[calc(100vh-188px)] flex items-center justify-center">
               <Watch
                 visible={true}
                 height="80"
@@ -156,7 +155,7 @@ const Products = () => {
           ) : products.length === 0 ? (
             <div>Nothing Found</div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid lg:grid-cols-3 md:grid-cols-1 grid-cols-1 md:gap-5 gap-8">
               {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}

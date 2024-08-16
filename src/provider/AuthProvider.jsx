@@ -62,7 +62,7 @@ export default function AuthProvider({ children }) {
           params.append("maxPrice", priceRange[1]);
         }
         params.append("page", page);
-        params.append("limit", 8);
+        params.append("limit", 9);
 
         // Add sorting parameters
         if (sort) params.append("sort", sort);

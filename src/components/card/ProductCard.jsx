@@ -2,15 +2,15 @@
 import StarRating from "../ratings/StarRating";
 const ProductCard = ({ product }) => {
   return (
-    <div className="card glass w-auto relative">
+    <div className="card glass w-auto relative rounded-xl">
       <figure>
         <img
-          className="h-60 w-full object-cover"
+          className="lg:h-60 h-80 w-full object-cover"
           src={product.productImage}
           alt={product.productName}
         />
       </figure>
-      <div className="card-body">
+      <div className="card-body px-6 py-5 ">
         <div className="flex justify-between">
           <h2 className="card-title">{product.productName}</h2>
           <div className="badge badge-ghost">{product.brandName}</div>
