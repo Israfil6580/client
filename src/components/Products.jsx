@@ -1,20 +1,26 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useContext } from "react";
 import { ScrollRestoration } from "react-router-dom";
-
+import { AuthContext } from "../provider/AuthProvider";
+import { ThreeCircles } from "react-loader-spinner";
 const Products = () => {
-  const [products, setProducts] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  useEffect(() => {
-    axios
-      .get(`http://localhost:5000/products?page=${page}&limit=8`)
-      .then((response) => {
-        setProducts(response.data.products);
-        setTotalPages(response.data.totalPages);
-      })
-      .catch((error) => console.error("Error fetching products:", error));
-  }, [page]);
+  const {
+    products,
+    page,
+    setPage,
+    totalPages,
+    categories,
+    brands,
+    isBrandsLoading,
+    isCategoriesLoading,
+    brand,
+    setBrand,
+    category,
+    loading,
+    setPriceRange,
+    setCategory,
+  } = useContext(AuthContext);
+
+  const isLoading = isBrandsLoading || isCategoriesLoading || loading;
 
   return (
     <div className="md:px-32 px-4 pb-6 pt-4">
@@ -22,63 +28,140 @@ const Products = () => {
         <h1 className="text-5xl font-semibold text-center pt-5 pb-8">
           Our Products
         </h1>
-        <div className="grid grid-cols-4 gap-4">
-          {products.map((product) => (
-            <div key={product._id} className="card glass w-auto">
-              <figure>
-                <img
-                  className="h-56 w-full"
-                  src={product.productImage}
-                  alt="car!"
-                />
-              </figure>
-              <div className="card-body p-7">
-                <div className="flex justify-between items-center">
-                  <h2 className="card-title">{product.productName}</h2>
-                  <div className="badge badge-ghost">{product.brandName}</div>
-                </div>
-                <p className="text-[15px]">
-                  {product.description.split(" ").slice(0, 12).join(" ")}
-                </p>
-                <p className="text-[1.25rem] font-semibold">${product.price}</p>
-                <div className="card-actions justify-end">
-                  <button className="btn btn-primary">Learn now!</button>
+        <div className="flex justify-end">
+          {/* Filter Controls */}
+          <div className="flex space-x-4 mb-6">
+            <select
+              className="border rounded-md p-2 outline-none"
+              onChange={(e) => setBrand(e.target.value)}
+              value={brand}
+              disabled={isLoading}
+            >
+              <option value="">All Brands</option>
+              {brands.map((brand, index) => (
+                <option key={index} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="border rounded-md p-2 outline-none"
+              onChange={(e) => setCategory(e.target.value)}
+              value={category}
+              disabled={isLoading}
+            >
+              <option value="">All Categories</option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="border rounded-md p-2 outline-none"
+              onChange={(e) =>
+                setPriceRange(e.target.value.split("-").map(Number))
+              }
+              disabled={isLoading}
+            >
+              <option value="0-20000">All Prices</option>
+              <option value="0-100">$0 - $100</option>
+              <option value="100-500">$100 - $500</option>
+              <option value="500-1000">$500 - $1000</option>
+              <option value="1000-2000">$1000 - $2000</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Loading Indicator */}
+        {isLoading && (
+          <div className="flex justify-center items-center h-[20vh]">
+            <ThreeCircles
+              visible={true}
+              height="100"
+              width="100"
+              color="#D7CF07"
+              ariaLabel="three-circles-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+            />
+          </div>
+        )}
+
+        {/* No Products Found */}
+        {!isLoading && products.length === 0 && (
+          <div className="flex justify-center items-center h-[20vh]">
+            <p className="text-xl font-semibold">Nothing Found</p>
+          </div>
+        )}
+
+        {/* Product Grid */}
+        {!isLoading && products.length > 0 && (
+          <div className="grid grid-cols-4 gap-4">
+            {products.map((product) => (
+              <div key={product._id} className="card glass w-auto">
+                <figure>
+                  <img
+                    className="h-56 w-full"
+                    src={product.productImage}
+                    alt={product.productName}
+                  />
+                </figure>
+                <div className="card-body p-7">
+                  <div className="flex justify-between items-center">
+                    <h2 className="card-title">{product.productName}</h2>
+                    <div className="badge badge-ghost">{product.brandName}</div>
+                  </div>
+                  <p className="text-[15px]">
+                    {product.description.split(" ").slice(0, 12).join(" ")}
+                  </p>
+                  <p className="text-[1.25rem] font-semibold">
+                    ${product.price}
+                  </p>
+                  <div className="card-actions justify-end">
+                    <button className="btn btn-primary">Learn now!</button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <ScrollRestoration />
+            ))}
+          </div>
+        )}
 
-        {/* pagination button */}
-        <div className="join flex justify-center pt-6">
-          <button
-            className="join-item btn"
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-          >
-            «
-          </button>
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <input
-              key={index + 1}
-              className="join-item btn btn-square"
-              type="radio"
-              name="options"
-              aria-label={index + 1}
-              checked={page === index + 1}
-              onChange={() => setPage(index + 1)}
-            />
-          ))}
-          <button
-            className="join-item btn"
-            disabled={page === totalPages}
-            onClick={() => setPage(page + 1)}
-          >
-            »
-          </button>
-        </div>
+        {/* Pagination */}
+        {!isLoading && products.length > 0 && (
+          <div className="join flex justify-center pt-6">
+            <button
+              className="join-item btn"
+              disabled={page === 1 || isLoading}
+              onClick={() => setPage(page - 1)}
+            >
+              «
+            </button>
+            {Array.from({ length: totalPages }).map((_, index) => (
+              <input
+                key={index + 1}
+                className="join-item btn btn-square"
+                type="radio"
+                name="options"
+                aria-label={index + 1}
+                checked={page === index + 1}
+                onChange={() => setPage(index + 1)}
+                disabled={isLoading}
+              />
+            ))}
+            <button
+              className="join-item btn"
+              disabled={page === totalPages || isLoading}
+              onClick={() => setPage(page + 1)}
+            >
+              »
+            </button>
+          </div>
+        )}
       </div>
+      <ScrollRestoration />
     </div>
   );
 };

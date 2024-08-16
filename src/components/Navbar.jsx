@@ -1,5 +1,23 @@
+import { useContext, useState } from "react";
 import logo from "../assets/react.svg";
+import { AuthContext } from "../provider/AuthProvider";
 const Navbar = () => {
+  const { allProducts } = useContext(AuthContext);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  // Handle search input changes
+  const handleSearch = (event) => {
+    const searchQuery = event.target.value.toLowerCase();
+    if (searchQuery === "") {
+      return setFilteredProducts(""); // Show all products if the search query is empty
+    } else {
+      // Filter products based on the search query
+      const results = allProducts.filter((product) =>
+        product.productName.toLowerCase().includes(searchQuery)
+      );
+      setFilteredProducts(results);
+    }
+  };
   return (
     <div className="bg-success md:px-32 px-4 pb-6 pt-4">
       <div className="navbar container mx-auto p-0">
@@ -49,7 +67,12 @@ const Navbar = () => {
 
       <div className="md:w-1/2 mx-auto">
         <label className="input h-[2.5rem] input-bordered flex items-center gap-2">
-          <input type="text" className="grow" placeholder="Search" />
+          <input
+            type="text"
+            className="grow"
+            placeholder="Search"
+            onChange={handleSearch}
+          />
           <button className="btn btn-ghost bg-transparent hover:bg-transparent p-0">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -65,6 +88,16 @@ const Navbar = () => {
             </svg>
           </button>
         </label>
+        {/* Display search results */}
+        {filteredProducts.length > 0 && (
+          <ul className="mt-2 bg-base-100 p-2 rounded-box shadow">
+            {filteredProducts.slice(0, 6).map((product) => (
+              <li key={product._id} className="p-1">
+                {product.productName}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
