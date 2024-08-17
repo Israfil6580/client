@@ -11,6 +11,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
+import toast from "react-hot-toast";
 
 export const AuthContext = createContext(null);
 
@@ -154,9 +155,10 @@ export default function AuthProvider({ children }) {
 
       // Refresh user state
       const updatedUser = auth.currentUser;
+      toast.success("Account Create Successfully");
       setUser(updatedUser);
     } catch (error) {
-      console.error("Error creating user:", error.message);
+      toast.error(error.message);
     } finally {
       setFirebaseLoading(false);
     }
@@ -170,33 +172,38 @@ export default function AuthProvider({ children }) {
       .then((result) => {
         const user = result.user;
         setUser(user);
+        toast.success("Signin Successfully with Google");
         setFirebaseLoading(false);
       })
       .catch((error) => {
         const errorMessage = error.message;
-        console.log(errorMessage);
+        toast.error(errorMessage);
         setFirebaseLoading(false);
       });
   };
 
-  const signInWithEmail = async (email, password) => {
+  const emailSignIn = async (email, password) => {
     setFirebaseLoading(true);
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in
         const user = userCredential.user;
         setUser(user);
+        toast.success("Signin Successfully with Email");
         setFirebaseLoading(false);
       })
       .catch((error) => {
-        const errorMessage = error.message;
-        console.log(errorMessage);
+        console.log(error);
+        toast.error("Invalid Email and Password");
+        setFirebaseLoading(false);
       });
   };
 
   const logout = async () => {
     signOut(auth)
-      .then(() => {})
+      .then(() => {
+        toast.success("Signout Successful!");
+      })
       .catch((error) => {
         console.log(error.message);
       });
@@ -226,6 +233,7 @@ export default function AuthProvider({ children }) {
     setSort,
     createUser,
     googleSignIn,
+    emailSignIn,
     user,
     logout,
     firebaseLoading,

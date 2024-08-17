@@ -3,7 +3,8 @@ import FcGoogle from "../../assets/google.svg";
 import { AuthContext } from "../../provider/AuthProvider";
 
 const AuthForm = () => {
-  const { createUser, googleSignIn, firebaseLoading } = useContext(AuthContext);
+  const { createUser, googleSignIn, firebaseLoading, emailSignIn } =
+    useContext(AuthContext);
   const [isLogin, setIsLogin] = useState(true);
   const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
@@ -25,10 +26,8 @@ const AuthForm = () => {
 
     try {
       if (isLogin) {
-        // Handle login here if needed
-        console.log("Login functionality is not yet implemented.");
+        await signInWithEmail(email, password);
       } else {
-        // Register new user
         await createUser(email, password, name, file);
       }
     } catch (err) {
@@ -39,6 +38,14 @@ const AuthForm = () => {
   const signInWithGoogle = async () => {
     try {
       await googleSignIn();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const signInWithEmail = async (email, password) => {
+    try {
+      emailSignIn(email, password);
     } catch (err) {
       setError(err.message);
     }

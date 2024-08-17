@@ -153,7 +153,9 @@ const Products = () => {
               />
             </div>
           ) : products.length === 0 ? (
-            <div>Nothing Found</div>
+            <div className="md:h-[30vh] flex justify-center items-center">
+              <p className="text-lg">Nothing Found</p>
+            </div>
           ) : (
             <div className="grid lg:grid-cols-3 md:grid-cols-1 grid-cols-1 md:gap-5 gap-8">
               {products.map((product) => (

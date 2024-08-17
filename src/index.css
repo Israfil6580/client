@@ -5,3 +5,6 @@
 .active {
   background: #d7cf0e;
 }
+.Toaster {
+  z-index: 9999 !important; /* Adjust as necessary */
+}

@@ -71,8 +71,8 @@ const Navbar = () => {
                     {firebaseLoading ? (
                       <Puff
                         visible={true}
-                        height="38"
-                        width="38"
+                        height="40"
+                        width="40"
                         color="#4fa94d"
                         ariaLabel="puff-loading"
                         wrapperStyle={{}}
@@ -88,9 +88,15 @@ const Navbar = () => {
                 </div>
                 <ul
                   tabIndex={0}
-                  className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+                  className="menu menu-sm dropdown-content bg-base-100 rounded-md z-[1] mt-3 w-52 p-2 shadow"
                 >
-                  <Link onClick={handleLogout}>Logout</Link>
+                  <Link className="disabled">{user?.displayName}</Link>
+                  <Link
+                    className="bg-blue-900 text-white p-1 rounded-md"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Link>
                 </ul>
               </div>
             )}
