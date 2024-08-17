@@ -3,50 +3,59 @@ import FcGoogle from "../../assets/google.svg";
 import { AuthContext } from "../../provider/AuthProvider";
 
 const AuthForm = () => {
-  const { createUser } = useContext(AuthContext);
+  const { createUser, googleSignIn, firebaseLoading } = useContext(AuthContext);
   const [isLogin, setIsLogin] = useState(true);
   const [file, setFile] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
   };
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
-  const createNewUser = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
     const email = form.email.value;
     const password = form.password.value;
-    const name = form.name.value;
-    createUser(email, password, name, file);
+    const name = form.name ? form.name.value : "";
+
+    try {
+      if (isLogin) {
+        // Handle login here if needed
+        console.log("Login functionality is not yet implemented.");
+      } else {
+        // Register new user
+        await createUser(email, password, name, file);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (isLogin) {
-      console.log("nothing");
-    } else {
-      createNewUser(e);
+  const signInWithGoogle = async () => {
+    try {
+      await googleSignIn();
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
     <div>
-      {/* Form Switch */}
-
       <form
         className="bg-gray-50 border mx-1 w-full px-8 pt-6 pb-8 mb-4 rounded-2xl block lg:mx-auto mt-10"
         onSubmit={handleSubmit}
       >
-        {/* Title */}
         <div className="text-center mb-4">
           <h1 className="text-4xl font-bold font-logo">
             {isLogin ? "Login" : "Register"}
           </h1>
         </div>
 
-        {/* Email */}
         <div className="mb-4">
           <label htmlFor="email" className="block text-gray-700 font-bold mb-2">
             Email
@@ -60,7 +69,6 @@ const AuthForm = () => {
           />
         </div>
 
-        {/* Password */}
         <div>
           <label
             htmlFor="password"
@@ -78,61 +86,65 @@ const AuthForm = () => {
         </div>
 
         {!isLogin && (
-          <div className="mb-4">
-            <label
-              htmlFor="name"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              className="appearance-none border rounded-xl w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none"
-              required
-            />
-          </div>
+          <>
+            <div className="mb-4">
+              <label
+                htmlFor="name"
+                className="block text-gray-700 font-bold mb-2"
+              >
+                Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                placeholder="Name"
+                className="appearance-none border rounded-xl w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="photo"
+                className="block text-gray-700 font-bold mb-2"
+              >
+                Photo
+              </label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="bg-white appearance-none border rounded-xl w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none"
+              />
+            </div>
+          </>
         )}
 
-        {!isLogin && (
-          <div className="mb-4">
-            <label
-              htmlFor="photo"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              Photo
-            </label>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              className="bg-white appearance-none border rounded-xl w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none"
-            />
-          </div>
-        )}
+        {error && <p className="text-red-500 text-center">{error}</p>}
 
-        {/* Submit Button */}
         <div className="flex items-center justify-between">
           <button
             className="btn lg:mt-5 mt-0 w-full btn-primary tracking-wide text-base text-white font-bold py-2"
             type="submit"
+            disabled={firebaseLoading}
           >
             {isLogin ? "Login" : "Register"}
           </button>
         </div>
       </form>
 
-      {/* Google Login */}
       {isLogin && (
         <div className="flex flex-col w-full mt-4">
           <div className="divider">or connect with</div>
-          <button className="btn p-0 bg-transparent hover:bg-transparent shadow-none border-none">
-            <img src={FcGoogle} alt="Google Login" className="w-16 h-16" />
+          <button
+            onClick={signInWithGoogle}
+            className="btn p-0 bg-transparent hover:bg-transparent shadow-none border-none"
+            disabled={firebaseLoading}
+          >
+            <img src={FcGoogle} alt="Google Login" className="w-12 h-12" />
           </button>
         </div>
       )}
 
-      {/* Toggle Link */}
       <div className="text-center mt-4">
         <p className="text-sm">
           {isLogin ? (

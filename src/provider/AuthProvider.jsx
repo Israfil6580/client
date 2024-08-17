@@ -4,7 +4,11 @@ import axios from "axios";
 import auth from "../../firebase.config";
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
   updateProfile,
 } from "firebase/auth";
 
@@ -27,6 +31,8 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState();
   const image_hosting_key = import.meta.env.VITE_image_hosting_key;
   const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
+  const provider = new GoogleAuthProvider();
+  const [firebaseLoading, setFirebaseLoading] = useState(false);
   // Fetch brands and categories only once
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -118,17 +124,20 @@ export default function AuthProvider({ children }) {
   }, []);
 
   // create user
+  // Create user
   const createUser = async (email, password, name, file) => {
+    setFirebaseLoading(true);
     try {
+      // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+
+      // Upload image and get URL
       const formData = new FormData();
       formData.append("image", file);
-      console.log(file);
-
       const response = await axios.post(image_hosting_api, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -136,16 +145,61 @@ export default function AuthProvider({ children }) {
       });
 
       const imageUrl = response.data.data.url;
+
       // Update user profile with name and photo
       await updateProfile(userCredential.user, {
         displayName: name || "",
         photoURL: imageUrl || "",
       });
-      setUser(userCredential.user);
+
+      // Refresh user state
+      const updatedUser = auth.currentUser;
+      setUser(updatedUser);
     } catch (error) {
-      const errorMessage = error.message;
-      console.log(errorMessage);
+      console.error("Error creating user:", error.message);
+    } finally {
+      setFirebaseLoading(false);
     }
+  };
+
+  // google sign in
+
+  const googleSignIn = async () => {
+    setFirebaseLoading(true);
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        setUser(user);
+        setFirebaseLoading(false);
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        console.log(errorMessage);
+        setFirebaseLoading(false);
+      });
+  };
+
+  const signInWithEmail = async (email, password) => {
+    setFirebaseLoading(true);
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in
+        const user = userCredential.user;
+        setUser(user);
+        setFirebaseLoading(false);
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        console.log(errorMessage);
+      });
+  };
+
+  const logout = async () => {
+    signOut(auth)
+      .then(() => {})
+      .catch((error) => {
+        console.log(error.message);
+      });
   };
   const value = {
     products,
@@ -171,7 +225,10 @@ export default function AuthProvider({ children }) {
     sort,
     setSort,
     createUser,
+    googleSignIn,
     user,
+    logout,
+    firebaseLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -2,9 +2,18 @@ import { useContext } from "react";
 import { AuthContext } from "../provider/AuthProvider";
 import logo from "../assets/react.svg";
 import AuthForm from "./form/AuthForm";
+import { Link } from "react-router-dom";
+import { Puff } from "react-loader-spinner";
 const Navbar = () => {
-  const { setSearchQuery, setPage, setSort, sort, user } =
-    useContext(AuthContext);
+  const {
+    setSearchQuery,
+    setPage,
+    setSort,
+    sort,
+    user,
+    logout,
+    firebaseLoading,
+  } = useContext(AuthContext);
 
   const handleSearch = (e) => {
     setPage(1); // Reset to first page when searching
@@ -14,6 +23,9 @@ const Navbar = () => {
   const handleSortChange = (event) => {
     setPage(1); // Reset to first page when sorting
     setSort(event.target.value);
+  };
+  const handleLogout = () => {
+    logout();
   };
   return (
     <div className="bg-success">
@@ -56,19 +68,29 @@ const Navbar = () => {
                   className="btn btn-ghost btn-circle avatar"
                 >
                   <div className="w-12 rounded-full">
-                    <img
-                      alt="Tailwind CSS Navbar component"
-                      src={user?.photoURL}
-                    />
+                    {firebaseLoading ? (
+                      <Puff
+                        visible={true}
+                        height="38"
+                        width="38"
+                        color="#4fa94d"
+                        ariaLabel="puff-loading"
+                        wrapperStyle={{}}
+                        wrapperClass=""
+                      />
+                    ) : (
+                      <img
+                        alt="Tailwind CSS Navbar component"
+                        src={user?.photoURL}
+                      />
+                    )}
                   </div>
                 </div>
                 <ul
                   tabIndex={0}
                   className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
                 >
-                  <li>
-                    <a>Logout</a>
-                  </li>
+                  <Link onClick={handleLogout}>Logout</Link>
                 </ul>
               </div>
             )}
