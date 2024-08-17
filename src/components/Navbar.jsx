@@ -3,7 +3,8 @@ import { AuthContext } from "../provider/AuthProvider";
 import logo from "../assets/react.svg";
 import AuthForm from "./form/AuthForm";
 const Navbar = () => {
-  const { setSearchQuery, setPage, setSort, sort } = useContext(AuthContext);
+  const { setSearchQuery, setPage, setSort, sort, user } =
+    useContext(AuthContext);
 
   const handleSearch = (e) => {
     setPage(1); // Reset to first page when searching
@@ -14,7 +15,6 @@ const Navbar = () => {
     setPage(1); // Reset to first page when sorting
     setSort(event.target.value);
   };
-  const user = false;
   return (
     <div className="bg-success">
       <div className="container mx-auto px-4">
@@ -58,7 +58,7 @@ const Navbar = () => {
                   <div className="w-12 rounded-full">
                     <img
                       alt="Tailwind CSS Navbar component"
-                      src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                      src={user?.photoURL}
                     />
                   </div>
                 </div>

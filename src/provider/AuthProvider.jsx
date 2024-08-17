@@ -1,6 +1,12 @@
 /* eslint-disable react/prop-types */
 import { createContext, useEffect, useState } from "react";
 import axios from "axios";
+import auth from "../../firebase.config";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
 
 export const AuthContext = createContext(null);
 
@@ -18,6 +24,9 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sort, setSort] = useState("");
+  const [user, setUser] = useState();
+  const image_hosting_key = import.meta.env.VITE_image_hosting_key;
+  const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
   // Fetch brands and categories only once
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -97,8 +106,47 @@ export default function AuthProvider({ children }) {
     setPage(1);
   }, [brand, category, priceRange]);
 
-  // create user
+  // onauthstagechange
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => {
+      return unsubscribe();
+    };
+  }, []);
 
+  // create user
+  const createUser = async (email, password, name, file) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const formData = new FormData();
+      formData.append("image", file);
+      console.log(file);
+
+      const response = await axios.post(image_hosting_api, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const imageUrl = response.data.data.url;
+      // Update user profile with name and photo
+      await updateProfile(userCredential.user, {
+        displayName: name || "",
+        photoURL: imageUrl || "",
+      });
+      setUser(userCredential.user);
+    } catch (error) {
+      const errorMessage = error.message;
+      console.log(errorMessage);
+    }
+  };
   const value = {
     products,
     setProducts,
@@ -122,6 +170,8 @@ export default function AuthProvider({ children }) {
     setSearchQuery,
     sort,
     setSort,
+    createUser,
+    user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

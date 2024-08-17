@@ -1,17 +1,44 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import FcGoogle from "../../assets/google.svg";
+import { AuthContext } from "../../provider/AuthProvider";
 
 const AuthForm = () => {
+  const { createUser } = useContext(AuthContext);
   const [isLogin, setIsLogin] = useState(true);
+  const [file, setFile] = useState(null);
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
+  };
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+  const createNewUser = (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const email = form.email.value;
+    const password = form.password.value;
+    const name = form.name.value;
+    createUser(email, password, name, file);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isLogin) {
+      console.log("nothing");
+    } else {
+      createNewUser(e);
+    }
   };
 
   return (
     <div>
       {/* Form Switch */}
-      <form className="bg-gray-50 border mx-1 w-full px-8 pt-6 pb-8 mb-4 rounded-2xl block lg:mx-auto mt-10">
+
+      <form
+        className="bg-gray-50 border mx-1 w-full px-8 pt-6 pb-8 mb-4 rounded-2xl block lg:mx-auto mt-10"
+        onSubmit={handleSubmit}
+      >
         {/* Title */}
         <div className="text-center mb-4">
           <h1 className="text-4xl font-bold font-logo">
@@ -71,13 +98,14 @@ const AuthForm = () => {
         {!isLogin && (
           <div className="mb-4">
             <label
-              htmlFor="photoURL"
+              htmlFor="photo"
               className="block text-gray-700 font-bold mb-2"
             >
               Photo
             </label>
             <input
               type="file"
+              onChange={handleFileChange}
               className="bg-white appearance-none border rounded-xl w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none"
             />
           </div>
