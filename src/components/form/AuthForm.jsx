@@ -3,7 +3,7 @@ import FcGoogle from "../../assets/google.svg";
 import { AuthContext } from "../../provider/AuthProvider";
 
 const AuthForm = () => {
-  const { createUser, googleSignIn, firebaseLoading, emailSignIn } =
+  const { signUpUser, signInWithGoogl, firebaseLoading, signInUser } =
     useContext(AuthContext);
   const [isLogin, setIsLogin] = useState(true);
   const [file, setFile] = useState(null);
@@ -28,26 +28,26 @@ const AuthForm = () => {
       if (isLogin) {
         await signInWithEmail(email, password);
       } else {
-        await createUser(email, password, name, file);
+        await signUpUser(email, password, name, file);
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An error occurred");
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      await googleSignIn();
+      await signInWithGoogl();
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An error occurred");
     }
   };
 
   const signInWithEmail = async (email, password) => {
     try {
-      emailSignIn(email, password);
+      await signInUser(email, password);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An error occurred");
     }
   };
 
@@ -126,7 +126,11 @@ const AuthForm = () => {
           </>
         )}
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-center" aria-live="assertive">
+            {error}
+          </p>
+        )}
 
         <div className="flex items-center justify-between">
           <button

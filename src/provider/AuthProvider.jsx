@@ -21,8 +21,6 @@ export default function AuthProvider({ children }) {
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [isBrandsLoading, setIsBrandsLoading] = useState(false);
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
   const [priceRange, setPriceRange] = useState([0, 20000]);
@@ -38,7 +36,6 @@ export default function AuthProvider({ children }) {
   // Fetch brands and categories only once
   useEffect(() => {
     const fetchCategories = async () => {
-      setIsCategoriesLoading(true);
       try {
         const response = await axios.get(
           "https://server-sand-seven-98.vercel.app/api/categories"
@@ -53,8 +50,6 @@ export default function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error("Error fetching categories:", error.message);
-      } finally {
-        setIsCategoriesLoading(false);
       }
     };
 
@@ -63,20 +58,13 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
     const fetchBrands = async () => {
-      setIsBrandsLoading(true);
       try {
         const response = await axios.get(
-          "https://server-sand-seven-98.vercel.app/api/brands"
+          "https://server-sand-seven-98.vercel.app/allbrands"
         );
-        if (Array.isArray(response.data)) {
-          setBrands(response.data);
-        } else {
-          console.error("Unexpected data format for brands:", response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching brands:", error.message);
-      } finally {
-        setIsBrandsLoading(false);
+        setBrands(response.data);
+      } catch (err) {
+        console.log(err.message);
       }
     };
 
@@ -207,7 +195,7 @@ export default function AuthProvider({ children }) {
   };
 
   // Sign In with Google
-  const signInWithGoogle = async () => {
+  const signInWithGoogl = async () => {
     try {
       setFirebaseLoading(true);
       const result = await signInWithPopup(auth, provider);
@@ -239,7 +227,7 @@ export default function AuthProvider({ children }) {
         user,
         signUpUser,
         signInUser,
-        signInWithGoogle,
+        signInWithGoogl,
         logOut,
         products,
         page,
@@ -247,8 +235,6 @@ export default function AuthProvider({ children }) {
         totalPages,
         categories,
         brands,
-        isBrandsLoading,
-        isCategoriesLoading,
         setBrand,
         setCategory,
         setPriceRange,

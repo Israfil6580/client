@@ -12,8 +12,6 @@ const Products = () => {
     totalPages,
     categories,
     brands,
-    isBrandsLoading,
-    isCategoriesLoading,
     brand,
     setBrand,
     category,
@@ -22,7 +20,7 @@ const Products = () => {
     setCategory,
   } = useContext(AuthContext);
 
-  const isLoading = isBrandsLoading || isCategoriesLoading || loading;
+  const isLoading = loading;
   // Handle changes in brand, category, and price range
   const handleBrandChange = useCallback(
     (e) => setBrand(e.target.value),
