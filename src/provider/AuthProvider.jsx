@@ -169,7 +169,9 @@ export default function AuthProvider({ children }) {
       // Update profile
       await updateProfile(user, { displayName: name, photoURL });
 
-      setUser(user);
+      // Ensure the user state is updated with the latest info
+      setUser({ ...user, photoURL });
+
       toast.success("Sign up successful!");
     } catch (error) {
       toast.error(error.message);
@@ -211,11 +213,11 @@ export default function AuthProvider({ children }) {
   };
 
   // Sign Out
-  const logOut = async () => {
+  const logOut = () => {
     try {
-      await signOut(auth);
-      setUser(null);
-      toast.success("Logged out successfully!");
+      signOut(auth).then(() => {
+        toast.success("Signout Successful!");
+      });
     } catch (error) {
       toast.error(error.message);
     }

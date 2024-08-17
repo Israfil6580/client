@@ -11,21 +11,19 @@ const Navbar = () => {
     setSort,
     sort,
     user,
-    logout,
+    logOut,
     firebaseLoading,
   } = useContext(AuthContext);
-
   const handleSearch = (e) => {
     setPage(1); // Reset to first page when searching
     setSearchQuery(e.target.value);
   };
-
   const handleSortChange = (event) => {
     setPage(1); // Reset to first page when sorting
     setSort(event.target.value);
   };
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logOut();
   };
   return (
     <div className="bg-success">
@@ -75,14 +73,11 @@ const Navbar = () => {
                         width="40"
                         color="#4fa94d"
                         ariaLabel="puff-loading"
-                        wrapperStyle={{}}
-                        wrapperClass=""
                       />
                     ) : (
-                      <img
-                        alt="Tailwind CSS Navbar component"
-                        src={user?.photoURL}
-                      />
+                      user?.photoURL && (
+                        <img alt={user?.displayName} src={user?.photoURL} />
+                      )
                     )}
                   </div>
                 </div>
@@ -91,12 +86,12 @@ const Navbar = () => {
                   className="menu menu-sm dropdown-content bg-base-100 rounded-md z-[1] mt-3 w-52 p-2 shadow"
                 >
                   <Link className="disabled">{user?.displayName}</Link>
-                  <Link
+                  <button
                     className="bg-blue-900 text-white p-1 rounded-md"
                     onClick={handleLogout}
                   >
                     Logout
-                  </Link>
+                  </button>
                 </ul>
               </div>
             )}
