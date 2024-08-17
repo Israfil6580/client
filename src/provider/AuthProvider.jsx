@@ -42,8 +42,8 @@ export default function AuthProvider({ children }) {
         setIsCategoriesLoading(true);
 
         const [brandsResponse, categoriesResponse] = await Promise.all([
-          axios.get(`http://localhost:5000/brands`),
-          axios.get(`http://localhost:5000/categories`),
+          axios.get(`https://server-5vz2.vercel.app/brands`),
+          axios.get(`https://server-5vz2.vercel.app/categories`),
         ]);
 
         setBrands(brandsResponse.data);
@@ -84,7 +84,7 @@ export default function AuthProvider({ children }) {
         if (sort) params.append("sort", sort);
 
         const response = await axios.get(
-          `http://localhost:5000/products?${params.toString()}`,
+          `https://server-5vz2.vercel.app/products?${params.toString()}`,
           { cancelToken: source.token }
         );
 
