@@ -6,11 +6,11 @@ import { Toaster } from "react-hot-toast";
 const Root = () => {
   return (
     <div>
-      <Toaster />
       <Navbar />
       <Outlet />
       <Products />
       <Footer />
+      <Toaster />
     </div>
   );
 };

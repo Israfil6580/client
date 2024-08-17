@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import auth from "../../firebase.config";
@@ -15,6 +14,7 @@ import toast from "react-hot-toast";
 
 export const AuthContext = createContext(null);
 
+// eslint-disable-next-line react/prop-types
 export default function AuthProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
@@ -34,39 +34,62 @@ export default function AuthProvider({ children }) {
   const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
   const provider = new GoogleAuthProvider();
   const [firebaseLoading, setFirebaseLoading] = useState(false);
+
   // Fetch brands and categories only once
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchCategories = async () => {
+      setIsCategoriesLoading(true);
       try {
-        setIsBrandsLoading(true);
-        setIsCategoriesLoading(true);
-
-        const [brandsResponse, categoriesResponse] = await Promise.all([
-          axios.get(`https://server-5vz2.vercel.app/brands`),
-          axios.get(`https://server-5vz2.vercel.app/categories`),
-        ]);
-
-        setBrands(brandsResponse.data);
-        setCategories(categoriesResponse.data);
+        const response = await axios.get(
+          "https://server-sand-seven-98.vercel.app/api/categories"
+        );
+        if (Array.isArray(response.data)) {
+          setCategories(response.data);
+        } else {
+          console.error(
+            "Unexpected data format for categories:",
+            response.data
+          );
+        }
       } catch (error) {
-        console.error("Error fetching brands or categories:", error);
+        console.error("Error fetching categories:", error.message);
       } finally {
-        setIsBrandsLoading(false);
         setIsCategoriesLoading(false);
       }
     };
 
-    fetchInitialData();
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchBrands = async () => {
+      setIsBrandsLoading(true);
+      try {
+        const response = await axios.get(
+          "https://server-sand-seven-98.vercel.app/api/brands"
+        );
+        if (Array.isArray(response.data)) {
+          setBrands(response.data);
+        } else {
+          console.error("Unexpected data format for brands:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching brands:", error.message);
+      } finally {
+        setIsBrandsLoading(false);
+      }
+    };
+
+    fetchBrands();
   }, []);
 
   // Fetch products based on filters and pagination
-  // Updated fetchProducts function in AuthProvider
   useEffect(() => {
     const source = axios.CancelToken.source();
 
     const fetchProducts = async () => {
       setLoading(true);
-      setProducts([]); // Clear previous products
+      setProducts([]);
 
       try {
         const params = new URLSearchParams();
@@ -79,12 +102,10 @@ export default function AuthProvider({ children }) {
         }
         params.append("page", page);
         params.append("limit", 9);
-
-        // Add sorting parameters
         if (sort) params.append("sort", sort);
 
         const response = await axios.get(
-          `https://server-5vz2.vercel.app/products?${params.toString()}`,
+          `https://server-sand-seven-98.vercel.app/products?${params.toString()}`,
           { cancelToken: source.token }
         );
 
@@ -94,7 +115,11 @@ export default function AuthProvider({ children }) {
         if (axios.isCancel(error)) {
           console.log("Request canceled", error.message);
         } else {
-          console.error("Error fetching products:", error);
+          console.error("Error fetching products:", error.message);
+          console.error(
+            "Error response data:",
+            error.response ? error.response.data : "No response data"
+          );
         }
       } finally {
         setLoading(false);
@@ -113,50 +138,51 @@ export default function AuthProvider({ children }) {
     setPage(1);
   }, [brand, category, priceRange]);
 
-  // onauthstagechange
+  // onAuthStateChanged
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
+      setFirebaseLoading(false);
     });
-    return () => {
-      return unsubscribe();
-    };
+
+    return () => unsubscribe();
   }, []);
 
-  // create user
-  // Create user
-  const createUser = async (email, password, name, file) => {
-    setFirebaseLoading(true);
+  // Sign Up
+  const signUpUser = async (email, password, name, photoFile) => {
     try {
-      // Create user with email and password
-      const userCredential = await createUserWithEmailAndPassword(
+      setFirebaseLoading(true);
+
+      // Upload profile image
+      let photoURL = "";
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append("image", photoFile);
+
+        const response = await axios.post(image_hosting_api, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (response.data.success) {
+          photoURL = response.data.data.url;
+        } else {
+          throw new Error("Image upload failed");
+        }
+      }
+
+      // Create user
+      const result = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+      const user = result.user;
 
-      // Upload image and get URL
-      const formData = new FormData();
-      formData.append("image", file);
-      const response = await axios.post(image_hosting_api, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Update profile
+      await updateProfile(user, { displayName: name, photoURL });
 
-      const imageUrl = response.data.data.url;
-
-      // Update user profile with name and photo
-      await updateProfile(userCredential.user, {
-        displayName: name || "",
-        photoURL: imageUrl || "",
-      });
-
-      // Refresh user state
-      const updatedUser = auth.currentUser;
-      toast.success("Account Create Successfully");
-      setUser(updatedUser);
+      setUser(user);
+      toast.success("Sign up successful!");
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -164,80 +190,75 @@ export default function AuthProvider({ children }) {
     }
   };
 
-  // google sign in
+  // Sign In
+  const signInUser = async (email, password) => {
+    try {
+      setFirebaseLoading(true);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const user = result.user;
 
-  const googleSignIn = async () => {
-    setFirebaseLoading(true);
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        const user = result.user;
-        setUser(user);
-        toast.success("Signin Successfully with Google");
-        setFirebaseLoading(false);
-      })
-      .catch((error) => {
-        const errorMessage = error.message;
-        toast.error(errorMessage);
-        setFirebaseLoading(false);
-      });
+      setUser(user);
+      toast.success("Sign in successful!");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setFirebaseLoading(false);
+    }
   };
 
-  const emailSignIn = async (email, password) => {
-    setFirebaseLoading(true);
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        setUser(user);
-        toast.success("Signin Successfully with Email");
-        setFirebaseLoading(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        toast.error("Invalid Email and Password");
-        setFirebaseLoading(false);
-      });
+  // Sign In with Google
+  const signInWithGoogle = async () => {
+    try {
+      setFirebaseLoading(true);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      setUser(user);
+      toast.success("Sign in with Google successful!");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setFirebaseLoading(false);
+    }
   };
 
-  const logout = async () => {
-    signOut(auth)
-      .then(() => {
-        toast.success("Signout Successful!");
-      })
-      .catch((error) => {
-        console.log(error.message);
-      });
-  };
-  const value = {
-    products,
-    setProducts,
-    page,
-    setPage,
-    totalPages,
-    setTotalPages,
-    categories,
-    brands,
-    isBrandsLoading,
-    isCategoriesLoading,
-    brand,
-    setBrand,
-    category,
-    loading,
-    setPriceRange,
-    setCategory,
-    setLoading,
-    priceRange,
-    searchQuery,
-    setSearchQuery,
-    sort,
-    setSort,
-    createUser,
-    googleSignIn,
-    emailSignIn,
-    user,
-    logout,
-    firebaseLoading,
+  // Sign Out
+  const logOut = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      toast.success("Logged out successfully!");
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        signUpUser,
+        signInUser,
+        signInWithGoogle,
+        logOut,
+        products,
+        page,
+        setPage,
+        totalPages,
+        categories,
+        brands,
+        isBrandsLoading,
+        isCategoriesLoading,
+        setBrand,
+        setCategory,
+        setPriceRange,
+        setSearchQuery,
+        setSort,
+        loading,
+        firebaseLoading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
