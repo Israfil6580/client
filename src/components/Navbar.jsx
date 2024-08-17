@@ -49,7 +49,7 @@ const Navbar = () => {
                   Login
                 </button>
                 <dialog id="my_modal_3" className="modal">
-                  <div className="modal-box">
+                  <div className="modal-box lg:p-6 p-2">
                     <form method="dialog">
                       {/* if there is a button in form, it will close the modal */}
                       <button className="btn btn-md btn-circle btn-ghost absolute right-2 top-2">

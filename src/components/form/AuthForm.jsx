@@ -54,7 +54,7 @@ const AuthForm = () => {
   return (
     <div>
       <form
-        className="bg-gray-50 border mx-1 w-full px-8 pt-6 pb-8 mb-4 rounded-2xl block lg:mx-auto mt-10"
+        className="bg-gray-50 border w-full lg:px-8 px-3 pt-6 pb-8 mb-4 rounded-2xl block lg:mx-auto mt-10"
         onSubmit={handleSubmit}
       >
         <div className="text-center mb-4">
