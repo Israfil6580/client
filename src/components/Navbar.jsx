@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "../provider/AuthProvider";
 import logo from "../assets/react.svg";
+import AuthForm from "./form/AuthForm";
 const Navbar = () => {
   const { setSearchQuery, setPage, setSort, sort } = useContext(AuthContext);
 
@@ -13,7 +14,7 @@ const Navbar = () => {
     setPage(1); // Reset to first page when sorting
     setSort(event.target.value);
   };
-
+  const user = false;
   return (
     <div className="bg-success">
       <div className="container mx-auto px-4">
@@ -25,26 +26,52 @@ const Navbar = () => {
           </div>
           {/* Sort Dropdown */}
           <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle avatar"
-            >
-              <div className="w-12 rounded-full">
-                <img
-                  alt="Tailwind CSS Navbar component"
-                  src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                />
+            {!user ? (
+              <div>
+                <button
+                  className="btn px-5 min-h-[2.5rem] h-[2.5rem]"
+                  onClick={() =>
+                    document.getElementById("my_modal_3").showModal()
+                  }
+                >
+                  Login
+                </button>
+                <dialog id="my_modal_3" className="modal">
+                  <div className="modal-box">
+                    <form method="dialog">
+                      {/* if there is a button in form, it will close the modal */}
+                      <button className="btn btn-md btn-circle btn-ghost absolute right-2 top-2">
+                        ✕
+                      </button>
+                    </form>
+                    <AuthForm />
+                  </div>
+                </dialog>
               </div>
-            </div>
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
-            >
-              <li>
-                <a>Logout</a>
-              </li>
-            </ul>
+            ) : (
+              <div>
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="btn btn-ghost btn-circle avatar"
+                >
+                  <div className="w-12 rounded-full">
+                    <img
+                      alt="Tailwind CSS Navbar component"
+                      src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                    />
+                  </div>
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+                >
+                  <li>
+                    <a>Logout</a>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>

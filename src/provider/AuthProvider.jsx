@@ -97,6 +97,8 @@ export default function AuthProvider({ children }) {
     setPage(1);
   }, [brand, category, priceRange]);
 
+  // create user
+
   const value = {
     products,
     setProducts,
